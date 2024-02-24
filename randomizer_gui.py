@@ -15,6 +15,7 @@ import randomizer_options as rngopts
 import randomize_item_table
 import bnd_rebuilder
 import dcx_handler
+from fmg_handler import FMGHandler
 
 import logging
 log = logging.getLogger(__name__)
@@ -24,7 +25,10 @@ MAX_SEED_LENGTH = 64
 VERSION_NUM = "0.3"
 
 PTDE_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd", "./param/GameParam/GameParam.parambnd"]
-DS1R_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd.dcx", "./param/GameParam/GameParam.parambnd.dcx"]
+DS1R_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd.dcx", "./param/GameParam/GameParam.parambnd.dcx", "D:\SteamLibrary\steamapps\common\DARK SOULS REMASTERED\param\GameParam\GameParam.parambnd.dcx"]
+
+PTDE_ENGMENU_PATH_LIST = ["./msg/ENGLISH/menu.msgbnd"]
+DS1R_ENGMENU_PATH_LIST = ["./msg/ENGLISH/menu.msgbnd.dcx", "D:\SteamLibrary\steamapps\common\DARK SOULS REMASTERED\msg\ENGLISH\menu.msgbnd.dcx"]
 
 DESC_DICT = {
     "diff": {rngopts.RandOptDifficulty.EASY: "* Perfectly fair. Items have an equal chance to be placed anywhere.\n", 
@@ -531,11 +535,14 @@ class MainGUI:
     def export_to_gameparam(self):
         if self.game_version.get() == rngopts.RandOptGameVersion.PTDE:
             paths_to_search = PTDE_GAMEPARAM_PATH_LIST
+            menu_paths = PTDE_ENGMENU_PATH_LIST
         elif self.game_version.get() == rngopts.RandOptGameVersion.REMASTERED:
             paths_to_search = DS1R_GAMEPARAM_PATH_LIST
+            menu_paths = DS1R_ENGMENU_PATH_LIST
         else:
             paths_to_search = []
         
+        # find our gameparam file
         has_gameparam = False
         for filepath in paths_to_search:
             normed_path = os.path.normpath(os.path.join(os.getcwd(), filepath))
@@ -543,6 +550,15 @@ class MainGUI:
                 has_gameparam = True
                 gameparam_filepath = normed_path
                 gameparambak_filepath = normed_path + ".bak"
+
+        # find our menu text file
+        has_engmenu = False
+        for filepath in menu_paths:
+            normed_path = os.path.normpath(os.path.join(os.getcwd(), filepath))
+            if os.path.isfile(normed_path):
+                has_engmenu = True
+                enmenu_filepath = normed_path
+                enmenubak_filepath = normed_path + ".bak"
                 
         is_remastered = (self.game_version.get() == rngopts.RandOptGameVersion.REMASTERED)
         
@@ -559,12 +575,28 @@ class MainGUI:
             self.msg_area.config(state="disabled")
             self.export_button.config(state = "disabled")
             self.lift_msg_area()
+        if not has_engmenu:
+            self.msg_area.config(state="normal")
+            self.msg_area.delete(1.0, "end")
+            self.msg_area.insert("end", "\n\n")
+            self.msg_area.insert("end", "ERROR", "error_red")
+            self.msg_area.insert("end", ": menu.msgbnd[.dcx] is missing or cannot be opened." + 
+             " Check that this program is in the correct directory and menu.msgbnd[.dcx] is present and retry.\n\n" +
+             "Click \"Continue\" to continue in seed-information-only mode, or" + 
+             " click \"Quit\" to exit.")
+            self.msg_area.tag_config("error_red", foreground="red")
+            self.msg_area.config(state="disabled")
+            self.export_button.config(state = "disabled")
+            self.lift_msg_area()
         else:
             if is_remastered:
                 gp_filename = "GameParam.parambnd.dcx"
+                enmenu_filename = "menu.msgbnd.dcx"
             else:
                 gp_filename = "GameParam.parambnd"
+                enmenu_filename = "menu.msgbnd"
             
+            # open our gameparam file
             with open(gameparam_filepath, "rb") as f:
                 content = f.read()
             try:
@@ -589,9 +621,39 @@ class MainGUI:
                 self.lift_msg_area()
                 return
             
+            # open our menu text file
+            # TODO: Consolidate this instead of duplicating
+            with open(enmenu_filepath, "rb") as f:
+                enmenu_content = f.read()
+            try:
+                if is_remastered:
+                    if not dcx_handler.appears_dcx(enmenu_content):
+                        raise ValueError(".dcx file does not appear to be DCX-compressed.")
+                    enmenu_content = dcx_handler.uncompress_dcx_content(enmenu_content)
+                enmenu_content_list = bnd_rebuilder.unpack_bnd(enmenu_content)
+            except:
+                self.msg_area.config(state="normal")
+                self.msg_area.delete(1.0, "end")
+                self.msg_area.insert("end", "\n\n")
+                self.msg_area.insert("end", "ERROR", "error_red")
+                self.msg_area.insert("end", 
+                 ": " + enmenu_filename + " is malformed or corrupted and cannot be" + 
+                 " parsed to inject hints. If possible, restore " + enmenu_filename + " from a backup copy.\n\n" +
+                 "Click \"Continue\" to continue in seed-information-only mode, or" + 
+                 " click \"Quit\" to exit.")
+                self.msg_area.tag_config("error_red", foreground="red")
+                self.msg_area.config(state="disabled")
+                self.export_button.config(state = "disabled")
+                self.lift_msg_area()
+                return
+            
             # Back up GameParam.parambnd if needed.
             if not os.path.isfile(gameparambak_filepath):
                 shutil.copy2(gameparam_filepath, gameparambak_filepath)
+
+            # Back up menu.msgbnd if needed.
+            if not os.path.isfile(enmenubak_filepath):
+                shutil.copy2(enmenu_filepath, enmenubak_filepath)
                 
             if self.is_seed_empty():
                 self.get_new_seed()
@@ -632,6 +694,19 @@ class MainGUI:
                 new_content = dcx_handler.compress_dcx_content(new_content)
             with open(gameparam_filepath, "wb") as f:
                 f.write(new_content)
+            
+            # Write out our menu text 
+            for index, (file_id, filepath, filedata) in enumerate(enmenu_content_list):
+                if (filepath == "N:\FRPG\data\Msg\Data_ENGLISH\Blood_writing_.fmg"):
+                    fmgData = FMGHandler(FMGHandler.load_from_file_content(filedata))
+                    enmenu_content_list[index] = (file_id, filepath, fmgData.export_as_binary())
+                    # enmenu_content_list[index] = (file_id, filepath, filedata)
+            new_content = bnd_rebuilder.repack_bnd(enmenu_content_list)
+            if is_remastered:
+                new_content = dcx_handler.compress_dcx_content(new_content)
+            with open(enmenu_filepath, "wb") as f:
+                f.write(new_content)            
+            
             seed_folder = self.export_seed_info((options, randomized_data, rng))
                 
             self.msg_continue_button.lower()
