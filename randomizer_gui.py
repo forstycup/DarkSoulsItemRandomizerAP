@@ -25,10 +25,10 @@ MAX_SEED_LENGTH = 64
 VERSION_NUM = "0.3"
 
 PTDE_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd", "./param/GameParam/GameParam.parambnd"]
-DS1R_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd.dcx", "./param/GameParam/GameParam.parambnd.dcx", "D:\SteamLibrary\steamapps\common\DARK SOULS REMASTERED\param\GameParam\GameParam.parambnd.dcx"]
+DS1R_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd.dcx", "./param/GameParam/GameParam.parambnd.dcx", "D:\SteamLibrary\steamapps\common\DARK SOULS REMASTERED\param\GameParam\GameParam.parambnd.dcx", "D:\Program Files (x86)\Steam\steamapps\common\DARK SOULS REMASTERED\param\GameParam\GameParam.parambnd.dcx"]
 
 PTDE_ENGMENU_PATH_LIST = ["./msg/ENGLISH/menu.msgbnd"]
-DS1R_ENGMENU_PATH_LIST = ["./msg/ENGLISH/menu.msgbnd.dcx", "D:\SteamLibrary\steamapps\common\DARK SOULS REMASTERED\msg\ENGLISH\menu.msgbnd.dcx"]
+DS1R_ENGMENU_PATH_LIST = ["./msg/ENGLISH/menu.msgbnd.dcx", "D:\SteamLibrary\steamapps\common\DARK SOULS REMASTERED\msg\ENGLISH\menu.msgbnd.dcx", "D:\Program Files (x86)\Steam\steamapps\common\DARK SOULS REMASTERED\msg\ENGLISH\menu.msgbnd.dcx"]
 
 DESC_DICT = {
     "diff": {rngopts.RandOptDifficulty.EASY: "* Perfectly fair. Items have an equal chance to be placed anywhere.\n", 
@@ -700,6 +700,7 @@ class MainGUI:
                 if (filepath == "N:\FRPG\data\Msg\Data_ENGLISH\Blood_writing_.fmg"):
                     fmgData = FMGHandler(FMGHandler.load_from_file_content(filedata))
                     enmenu_content_list[index] = (file_id, filepath, fmgData.export_as_binary())
+                    # fmgData.export_as_binary()
                     # enmenu_content_list[index] = (file_id, filepath, filedata)
             new_content = bnd_rebuilder.repack_bnd(enmenu_content_list)
             if is_remastered:
