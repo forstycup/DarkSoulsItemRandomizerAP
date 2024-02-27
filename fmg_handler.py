@@ -103,6 +103,6 @@ class FMGHandler:
         fileLength = current_string_offset
 
         # unk00, bigEndian, version, unk03, fileSize, unk08, unk09, unk0A, unk0B, groupCount, stringCount, stringOffsetsOffset
-        header = struct.pack("@BBBBIBBBBIIII", 0, 1, 1, 0, fileLength, 1, 0, 0, 0, groupCount, len(self.messages), strings_offset_offset, 0)
+        header = struct.pack("@BBBBIBBBBIIII", 0, 0, 1, 0, fileLength, 1, 0, 0, 0, groupCount, len(self.messages), strings_offset_offset, 0)
         
         return header + packed_groups + packed_string_offsets + packed_strings
