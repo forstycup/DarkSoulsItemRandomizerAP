@@ -1820,8 +1820,12 @@ ITEMS = {
  60004001: ItemLotPart(ITEM_DIF.MEDIUM, 2, [ItemLotEntry(ITEM_TYPE.ITEM, 5020)], flag = 11027270),
  60004002: ItemLotPart(ITEM_DIF.MEDIUM, 2, [ItemLotEntry(ITEM_TYPE.ITEM, 5210)], flag = 11027280),
  60004003: ItemLotPart(ITEM_DIF.MEDIUM, 2, [ItemLotEntry(ITEM_TYPE.ITEM, 5300)], flag = 11027290),
- 60004004: ItemLotPart(ITEM_DIF.EASY, 2, [ItemLotEntry(ITEM_TYPE.ITEM, 5400)], flag = 11017180),
- 60004005: ItemLotPart(ITEM_DIF.MEDIUM, 2, [ItemLotEntry(ITEM_TYPE.WEAPON, 1360000)]),
+
+ # Leave the Seek Guidance and Talisman that Petrus sells alone, so that it can be always
+ #  sold so that the player can utilize the dev hints for the hint option.
+ 60004004: ItemLotPart(ITEM_DIF.NOT_IN_POOL, 2, [ItemLotEntry(ITEM_TYPE.ITEM, 5400)], flag = 11017180),
+ 60004005: ItemLotPart(ITEM_DIF.NOT_IN_POOL, 2, [ItemLotEntry(ITEM_TYPE.WEAPON, 1360000)]),
+
  60004006: ItemLotPart(ITEM_DIF.MEDIUM, 2, [ItemLotEntry(ITEM_TYPE.WEAPON, 1362000)]),
  60004200: ItemLotPart(ITEM_DIF.MEDIUM, 2, [ItemLotEntry(ITEM_TYPE.ITEM, 240)]),
  60004201: ItemLotPart(ITEM_DIF.EASY, 2, [ItemLotEntry(ITEM_TYPE.ITEM, 5000)]),
