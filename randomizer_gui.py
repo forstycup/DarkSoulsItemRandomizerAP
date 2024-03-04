@@ -63,10 +63,12 @@ DESC_DICT = {
         False: "* NPCs will wear their normal sets of armor.\n   NPCs have their familiar look, weight class and defense stats.\n\n"},
     "use_lv": {True: "* The Lordvessel IS included in the randomized keys.\n   Difficulty ranges from much easier (in Firelink) to harder (in TotG).\n",
         False: "* The Lordvessel IS NOT included in the randomized keys.\n   Difficulty is standard. Lordvessel is given by Gwynevere in Anor Londo.\n"},
-    "use_lord_souls": {True: "* The 4 Lord Souls ARE included in the randomized keys.\n   Difficulty ranges from much easier to much harder.", 
-        False: "* The 4 Lord Souls ARE NOT included in the randomized keys.\n   Difficulty is standard. Lord Souls are dropped by their normal bosses."}
+    "use_lord_souls": {True: "* The 4 Lord Souls ARE included in the randomized keys.\n   Difficulty ranges from much easier to much harder.\n\n", 
+        False: "* The 4 Lord Souls ARE NOT included in the randomized keys.\n   Difficulty is standard. Lord Souls are dropped by their normal bosses.\n\n"},
+    "set_up_hints": {True: "* The dev messages visibile with Seek Guidance will have \n   hints automatically added in.", 
+        False: "* There are no hints that are added to the seed via Seek Guidance."}
 }
-DESC_ORDER = ["diff", "key_diff", "souls_diff", "start_items", "fashion", "npc_armor", "use_lv", "use_lord_souls"]
+DESC_ORDER = ["diff", "key_diff", "souls_diff", "start_items", "fashion", "npc_armor", "use_lv", "use_lord_souls", "set_up_hints"]
 
 
 
@@ -146,8 +148,8 @@ class MainGUI:
         self.msg_continue_button.grid(row=7, column=1, columnspan=2, rowspan=2)
         self.back_button = tk.Button(self.root, text="Back", command=self.back_button)
         self.back_button.grid(row=7, column=1, columnspan=2, rowspan=2)
-        self.desc_area = tk.Text(self.root, width=76, height=19, state="disabled", background=self.root.cget('background'), wrap="word")
-        self.desc_area.grid(row=2, column=0, columnspan=3, rowspan=9, padx=2, pady=2)
+        self.desc_area = tk.Text(self.root, width=76, height=22, state="disabled", background=self.root.cget('background'), wrap="word")
+        self.desc_area.grid(row=2, column=0, columnspan=3, rowspan=12, padx=2, pady=2)
         
         self.diff_frame = tk.LabelFrame(text="Difficulty:")
         self.diff_frame.grid(row=2, column=3, rowspan=1, sticky='NS', padx=2)
@@ -273,13 +275,22 @@ class MainGUI:
          width=20, anchor=tk.W)
         self.lord_soul_check.grid(row=6, column=4, sticky='W')
         self.setup_hover_events(self.lord_soul_check, {"use_lord_souls": None}, no_emph = True)
+
+        self.set_up_hints = tk.BooleanVar()
+        self.set_up_hints.set(False)
+        self.set_up_hints.trace('w', lambda name, index, mode: self.update())
+        self.hint_check = tk.Checkbutton(self.root, text="Seek Guidance Hints", 
+         variable=self.set_up_hints, onvalue=True, offvalue=False, padx=2,
+         width=20, anchor=tk.W)
+        self.hint_check.grid(row=7, column=4, sticky='W')
+        self.setup_hover_events(self.hint_check, {"set_up_hints": None}, no_emph = True)
         
         self.export_button = tk.Button(self.root, text="Scramble Items &\nExport to GameParam", 
          padx=10, pady=10, command=self.export_to_gameparam)
-        self.export_button.grid(row=7, rowspan=3, column=4, padx=2, sticky='EW')
+        self.export_button.grid(row=8, rowspan=3, column=4, padx=2, sticky='EW')
         
         self.cheat_button = tk.Button(self.root, text="Write Seed Info &\nCheatsheet / Hintsheet", command=self.export_seed_info)
-        self.cheat_button.grid(row=10, rowspan=2, column=4, sticky='EW', padx=2, pady=2)
+        self.cheat_button.grid(row=11, rowspan=2, column=4, sticky='EW', padx=2, pady=2)
         
         self.update_desc()
         self.detect_game_version()
@@ -358,7 +369,8 @@ class MainGUI:
             "fashion": (self.fashion_bool.get(), DescriptionState.NORMAL),
             "npc_armor": (self.npc_armor_bool.get(), DescriptionState.NORMAL),
             "use_lv": (self.use_lordvessel.get(), DescriptionState.NORMAL),
-            "use_lord_souls": (self.use_lord_souls.get(), DescriptionState.NORMAL)
+            "use_lord_souls": (self.use_lord_souls.get(), DescriptionState.NORMAL),
+            "set_up_hints": (self.set_up_hints.get(), DescriptionState.NORMAL),
         }
         return DescriptionState(desc_specifiers, self.desc_area)
         
@@ -654,6 +666,9 @@ class MainGUI:
             # Back up menu.msgbnd if needed.
             if not os.path.isfile(enmenubak_filepath):
                 shutil.copy2(enmenu_filepath, enmenubak_filepath)
+            # Copy our default msgbnd back if we're not building hints
+            elif os.path.isfile(enmenubak_filepath) and not self.set_up_hints.get():
+                shutil.move(enmenubak_filepath, enmenubak_filepath)
                 
             if self.is_seed_empty():
                 self.get_new_seed()
@@ -678,6 +693,7 @@ class MainGUI:
             result_slp = item_table.build_shoplineup()
             slp_binary_export = result_slp.export_as_binary()
             cip_binary_export = randomized_chr_data.export_as_binary()
+            item_table.hint_builder.ConstructHintList()
             
             for index, (file_id, filepath, filedata) in enumerate(content_list):
                 if (filepath == "N:\FRPG\data\INTERROOT_win32\param\GameParam\ItemLotParam.param" or
@@ -695,18 +711,18 @@ class MainGUI:
             with open(gameparam_filepath, "wb") as f:
                 f.write(new_content)
             
-            # Write out our menu text 
-            for index, (file_id, filepath, filedata) in enumerate(enmenu_content_list):
-                if (filepath == "N:\FRPG\data\Msg\Data_ENGLISH\Blood_writing_.fmg"):
-                    fmgData = FMGHandler(FMGHandler.load_from_file_content(filedata))
-                    enmenu_content_list[index] = (file_id, filepath, fmgData.export_as_binary())
-                    # fmgData.export_as_binary()
-                    # enmenu_content_list[index] = (file_id, filepath, filedata)
-            new_content = bnd_rebuilder.repack_bnd(enmenu_content_list)
-            if is_remastered:
-                new_content = dcx_handler.compress_dcx_content(new_content)
-            with open(enmenu_filepath, "wb") as f:
-                f.write(new_content)            
+            # Write out our menu text if we need to
+            if self.set_up_hints.get():
+                for index, (file_id, filepath, filedata) in enumerate(enmenu_content_list):
+                    if (filepath == "N:\FRPG\data\Msg\Data_ENGLISH\Blood_writing_.fmg"):
+                        fmgData = FMGHandler(FMGHandler.load_from_file_content(filedata))
+                        item_table.hint_builder.AddHintsToBloodMessages(fmgData)
+                        enmenu_content_list[index] = (file_id, filepath, fmgData.export_as_binary())
+                new_content = bnd_rebuilder.repack_bnd(enmenu_content_list)
+                if is_remastered:
+                    new_content = dcx_handler.compress_dcx_content(new_content)
+                with open(enmenu_filepath, "wb") as f:
+                    f.write(new_content)            
             
             seed_folder = self.export_seed_info((options, randomized_data, rng))
                 
