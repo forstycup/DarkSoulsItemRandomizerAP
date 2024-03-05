@@ -146,7 +146,7 @@ class MainGUI:
         self.game_version_menu.config(width=30)
         self.game_version_menu.grid(row=1, column=2, sticky='EW', padx=2)
         
-        self.msg_area = tk.Text(self.root, width=76, height=19, state="disabled", background=self.root.cget('background'), wrap="word")
+        self.msg_area = tk.Text(self.root, width=76, height=22, state="disabled", background=self.root.cget('background'), wrap="word")
         self.msg_area.grid(row=2, column=0, columnspan=3, rowspan=9, padx=2, pady=2)
         self.msg_quit_button = tk.Button(self.root, text="Quit", command=self.quit_button)
         self.msg_quit_button.grid(row=9, column=1, columnspan=2, rowspan=2)
@@ -312,7 +312,7 @@ class MainGUI:
         self.export_button.grid(row=9, rowspan=3, column=4, padx=2, sticky='EW')
         
         self.cheat_button = tk.Button(self.root, text="Write Seed Cheatsheet", command=self.export_seed_info)
-        self.cheat_button.grid(row=11, rowspan=1, column=4, sticky='EW', padx=2, pady=2)
+        self.cheat_button.grid(row=12, rowspan=1, column=4, sticky='EW', padx=2, pady=2)
         
         self.update_desc()
         self.detect_game_version()
