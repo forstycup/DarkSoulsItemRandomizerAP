@@ -25,7 +25,7 @@ INI_FILE = "randomizer.ini"
 
 MAX_SEED_LENGTH = 64
 
-VERSION_NUM = "0.3"
+VERSION_NUM = "0.5.1"
 
 PTDE_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd", "./param/GameParam/GameParam.parambnd"]
 DS1R_GAMEPARAM_PATH_LIST = ["./GameParam.parambnd.dcx", "./param/GameParam/GameParam.parambnd.dcx", "D:\SteamLibrary\steamapps\common\DARK SOULS REMASTERED\param\GameParam\GameParam.parambnd.dcx", "D:\Program Files (x86)\Steam\steamapps\common\DARK SOULS REMASTERED\param\GameParam\GameParam.parambnd.dcx"]
@@ -719,7 +719,7 @@ class MainGUI:
             result_slp = item_table.build_shoplineup()
             slp_binary_export = result_slp.export_as_binary()
             cip_binary_export = randomized_chr_data.export_as_binary()
-            item_table.hint_builder.ConstructHintList()
+            item_table.hint_builder.ConstructHintList(rng)
             
             for index, (file_id, filepath, filedata) in enumerate(content_list):
                 if (filepath == "N:\FRPG\data\INTERROOT_win32\param\GameParam\ItemLotParam.param" or
@@ -742,7 +742,7 @@ class MainGUI:
                 for index, (file_id, filepath, filedata) in enumerate(enmenu_content_list):
                     if (filepath == "N:\FRPG\data\Msg\Data_ENGLISH\Blood_writing_.fmg"):
                         fmgData = FMGHandler(FMGHandler.load_from_file_content(filedata))
-                        item_table.hint_builder.AddHintsToBloodMessages(fmgData)
+                        item_table.hint_builder.AddHintsToBloodMessages(fmgData, rng)
                         enmenu_content_list[index] = (file_id, filepath, fmgData.export_as_binary())
                 new_content = bnd_rebuilder.repack_bnd(enmenu_content_list)
                 if is_remastered:

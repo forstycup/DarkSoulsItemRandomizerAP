@@ -248,7 +248,7 @@ class HintBuilder:
             elif item.item_id in KEY_RINGS:
                 self.key_items.append(hint_string)
                                          
-    def ConstructHintList(self):
+    def ConstructHintList(self, rng: random):
         # 32 total hint slots available
         # take 2 of the big key hints and put them in twice (4 slots)
         # take 6 of the key hints, and put them in twice (12 slots, 16 total)
@@ -256,16 +256,16 @@ class HintBuilder:
         # take 6 of the useful locations, put them in (6 slots, 26 total)
         # take 3 trash hints, shuffle them in twice (6 slots, 32 total)
 
-        big_keys = random.sample(self.big_keys, 2)
-        key_items = random.sample(self.key_items, 6)
-        useful_items = random.sample(self.useful_items, 4)
-        useful_locations = random.sample(self.useful_locations, 6)
-        trash_hints = random.sample(TRASH_HINTS, 3)
+        big_keys = rng.sample(self.big_keys, 2)
+        key_items = rng.sample(self.key_items, 6)
+        useful_items = rng.sample(self.useful_items, 4)
+        useful_locations = rng.sample(self.useful_locations, 6)
+        trash_hints = rng.sample(TRASH_HINTS, 3)
 
         self.hint_list = big_keys + big_keys + key_items + key_items + useful_items + useful_locations + trash_hints + trash_hints
 
-    def AddHintsToBloodMessages(self, blood_messages: fmg_handler.FMGHandler):
-        random.shuffle(self.hint_list)
+    def AddHintsToBloodMessages(self, blood_messages: fmg_handler.FMGHandler, rng: random):
+        rng.shuffle(self.hint_list)
         hint_index = 0
 
         for event in blood_messages.messages:
